@@ -51,7 +51,7 @@ const Table: React.FC<TableProps> = ({data, searchName}) => {
                 <td>{item.terrain}</td>
                 <td>{item.surface_water}</td>
                 <td>{item.population}</td>
-                <td>{item.films}</td>
+                {/* <td>{item.films}</td> */}
               </tr>
             ))}
         </tbody>
