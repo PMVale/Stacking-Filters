@@ -2,6 +2,7 @@
 import React, { useMemo, useState } from 'react'
 import Table from './Table'
 import FilterInputs from './FilterInputs'
+import ActiveFilters from './ActiveFilters'
 
 type BodyProps = {
   apiData: {
@@ -35,6 +36,8 @@ const Body: React.FC<BodyProps> = ({apiData}) => {
   const [deployedFilters, setDeployedFilters] = useState(initialFilters);
   const [comparisonFilter, setComparisonFilter] = useState('higher');
   const [valueFilter, setValueFilter] = useState(0);
+  const [columnTypes, setColumnTypes] = useState(['population',
+    'orbital_period', 'diameter', 'rotation_period', 'surface_water', '']);
 
   const handleDeployedFilters = () => {
     setDeployedFilters((prevFilters) => [...prevFilters, {
@@ -59,6 +62,43 @@ const Body: React.FC<BodyProps> = ({apiData}) => {
     }
   }
 
+  const handleOptions = (type:string) => {
+    const types = ['population', 'orbital_period', 'diameter', 'rotation_period', 'surface_water', ''];
+
+    let unsortedTypes = [...columnTypes, type];
+    const sortedArr: string[] = [];
+
+    types.forEach((item) => {
+      const sortedTypes = unsortedTypes.filter((item2) => item2 === item);
+      sortedArr.push(...sortedTypes);
+      unsortedTypes = unsortedTypes.filter((item3) => item3 !== item);
+    });
+
+    setColumnTypes([...sortedArr]);
+    setColumnFilter(sortedArr[0])
+  };
+
+  const removeFilter = (filterIndex: number, type:string) => {
+    handleOptions(type);
+    let newFilteredData = [...apiData];
+    const newFilters = [...deployedFilters.filter((_item, index) => index !== filterIndex)];
+    setDeployedFilters([...newFilters]);
+
+    newFilters.forEach((filter) => {
+      if (filter.comparison === 'higher') {
+        newFilteredData = newFilteredData.filter((item) => Number(item[filter.column]) > filter.value);
+      }
+      if (filter.comparison === 'lower') {
+        newFilteredData = newFilteredData.filter((item) => Number(item[filter.column]) < filter.value);
+      }
+      if (filter.comparison === 'equal') {
+        newFilteredData = newFilteredData.filter((item) => Number(item[filter.column]) === filter.value);
+      }
+    });
+
+    setFilteredData([...newFilteredData]);
+  }
+
   const inputStates = useMemo(() => ({
     searchName,
     setSearchName,
@@ -75,6 +115,7 @@ const Body: React.FC<BodyProps> = ({apiData}) => {
   return (
     <main>
       <FilterInputs inputStates={inputStates}/>
+      <ActiveFilters deployedFilters={deployedFilters} removeFilter={removeFilter}  />
       <Table data={filteredData} searchName={searchName}/>
     </main>
   )
